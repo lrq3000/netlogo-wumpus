@@ -4021,17 +4021,23 @@ Try various learning-mode algorithms and modify the parameters, and watch the in
 
 ## EXTENDING THE MODEL
 
-The neural network model does not work well with the dynamic mode, whereas it should be very efficient theoretically!
+The neural network model (NQ-Learning) should theoretically solve the hardest variant ("harder-variation"), but not only does it fail for this variant, it also fails with the normal game! This clearly means the NQ-learning algorithm, as it is currently implemented, is suboptimal.
 
-Currently the neural network is implemented this way: TD-learning or Q-learning (or SQ-Learning for temporal actions with arrows) is used to assign a value for each square/action, then the value is backpropagated through the neural network to define the synapses weights.
+Currently the neural network is implemented this way: TD-learning or Q-learning (or SQ-Learning for temporal actions with arrows) is used to assign a value for each square/action, then the value is backpropagated through the neural network to define the synapses weights. This is the standard approach advised in numerous books.
 
 Another approach would be to use TD-Learning/Q-Learning directly on the neural network, to define the values of the weights. So instead of using reinforcement learning on the labyrinth's squares (ie, on the environment), it would be used on the neural network (ie, on the internal model of the environment). The easiest would be to have a neural network with as many neurons as there are possible actions from start to end, but it would quickly get too huge. Another way would be to just have 3 layers of n neurons, where n is the number of possible actions and senses and the layers a modelisation of the temporality: last layer L would be the current situation, L-1 would be the situation one step before, L-2 would be two steps before, etc.
 
 The advantage with this approach is that TD-Learning/Q-Learning should be able to do the famous "blocking", which is that useless inputs will be filtered out, so the network's weights should be sparse (only the useful synapses will remain non-zero).
 
-## PARTICLE FILTERS AND CHICKEN STRATEGIES
+We could also of course try to implement Deep Q Neural Networks by DeepMind, and interestingly the new curiosity system they derived from the intrinsic motivation litterature:
 
-The chicken strategies were devised by Stephen Larroque, they gave the best results among all possible strategies (reinforcement learning and neural networks included). The chicken strategies are based on the "global-score" which is a score that is assigned to each square and which is computed as an aggregation of several parameters to represent the danger of this square. So obviously, when the square is visited, it gets a score of 0 (because there is no danger anymore), as only unknown squares have a "global-score" (which is really a "danger score"). The relevant code is this:
+https://arxiv.org/pdf/1606.01868v1.pdf
+
+## HARDEST VARIANT AND PARTICLE FILTERS AND CHICKEN STRATEGIES
+
+Although reinforcement learning (TD-Learning, Q-Learning, SQ-Learning) give the best results for the normal and harder variants ("random-startpos" is enabled), all strategies fail for the hardest variant ("harder-variation"). All except the chicken strategies, which will be described here.
+
+The chicken strategies were devised by Stephen Larroque, they gave the best results among all possible strategies (reinforcement learning and neural networks included) for the hardest variant. The chicken strategies are based on the "global-score" which is a score that is assigned to each square and which is computed as an aggregation of several parameters to represent the danger of this square. So obviously, when the square is visited, it gets a score of 0 (because there is no danger anymore), as only unknown squares have a "global-score" (which is really a "danger score"). The relevant code is this:
 
 to compute-global-score [case]
   ask case [
