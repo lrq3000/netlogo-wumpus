@@ -145,11 +145,11 @@ to setup-globals
   set qval-start 10
   set sqval-start 10
   set justfinished false
-  
+
   set gen 0
   set steps 0
   set found-treasure false
-  
+
   set count-won 0
   set count-eaten 0
   set count-fell 0
@@ -159,7 +159,7 @@ to setup-globals
   set prev-gen 0
 
   set playmode false
-  
+
   ; Constantes de déplacement/action (on peut mettre n'importe quelle valeur tant qu'elle est unique)
   set pup 0
   set pdown 1
@@ -232,15 +232,15 @@ to reset-learning
     set sqval-arrow-right []
     set sqval-arrow-down []
     set sqval-arrow-up []
-    
+
     ; Adaptive epsilon-greedy exploration strategy, on commence à 0.9
     if auto-epsi [
       set epsilon 0.9
     ]
   ]
-  
+
   set chicken-path []
-  
+
   ; Neural Q-Learning
   reset-nnlearning
 end
@@ -265,15 +265,15 @@ to reset-nnlearning
   ; Initialisation des mega matrices X et Y (qui vont contenir un ensemble d'exembles pour chaque action)
   set nqval-megaX (n-values nbactions [nobody])
   set nqval-megaY (n-values nbactions [nobody])
-  
+
   ; Init prevX (l'exemple précédent)
   set nqval-prev-X matrix:from-row-list (list (n-values (nbfeatures * nq-memo) [0]))
-  
+
   set replay-last-ticks 0
   set replay-count 0
 
   set stop-nqlearn false
-  
+
   ask patches [
     set global-score 0
   ]
@@ -299,7 +299,7 @@ to resetup-explorer
     ; Placement en bas à gauche
     setxy min-pxcor min-pycor
   ]
-  
+
   ; Initialisation des variables propres
   reset-explorers-items
 end
@@ -411,7 +411,7 @@ to setup-pits
       ; Placement dans une case aléatoire où il n'y a aucun autre agent
       place-on-empty-patch
     ]
-    
+
     set path-is-possible setup-check-path-is-possible
   ]
 
@@ -419,7 +419,7 @@ to setup-pits
     ; Apparence
     set shape "tile water"
     set color black
-    
+
     ; Initialisation des variables propres
     ask neighbors4 [
       ; Mise en place des sens sur les cases voisines
@@ -464,7 +464,7 @@ to-report setup-check-path-is-possible
           if any? explorers-here [
             set reached-goal true
           ]
-          
+
           ask neighbors4 with [not path-checked] [
             set path-tocheck true
             if any? explorers-here [
@@ -548,9 +548,9 @@ to-report find-path-to-nearest-max-gscore-aux [path-list max-gscore level]
   ; Note: on limite à un niveau aléatoire pour éviter les boucles infinies (ou l'agent est à égale distance du but et va dans un sens puis dans l'autre puis revient sur ses pas, etc..).
   ; De plus, on DOIT retourner nobody pour dire que ce chemin ne mène pas au but pour fallback sur le Chicken Heuristic (marche sur un voisin direct) car sinon si on retourne [] une liste vide, il va tenter de se rapprocher indéfiniment de la cible, mais ça peut ne pas marcher si aucun chemin n'y mène! Moyen de contourner:
   ; Un moyen de contourner: s'assurer que le max-gscore donné soit le score max d'un patch _accessible_, pas juste de n'importe quel patch!
-  
+
   ;set pcolor green + 2 - 0.5 * level ; DEBUG
-  
+
   ; Fin de récursion: Si un des voisins direct à la case en cours possède un score max, alors on la retourne et on a atteint notre but
   ifelse count neighbors4 with [(global-score + penalty-backtrack * visited-count) >= max-gscore] > 0 [
     let case (one-of neighbors4 with [(global-score + penalty-backtrack * visited-count) >= max-gscore])
@@ -743,7 +743,7 @@ to compute-threats-scores [case]
         ]
         set prev-unknown-pxcor temp-pxcor
         set prev-unknown-pycor temp-pycor
-        
+
         ; MAJ de la case en cours
         if stench = false [
           set monster-threat-score 0
@@ -882,7 +882,7 @@ to move-explorers
             set qval-prev-patch-pycor pycor
 
             set qval-prev-action (choice-action-max-qval true)
-            
+
             set next-reward reward
             set next-qval get-qval qval-prev-action
           ]
@@ -907,7 +907,7 @@ to move-explorers
       ; MAJ de la valeur Qval pour l'action précédente + assigne next-qval dans prev-qval (change next state s' en s)
       update-qval next-reward next-qval
     ]
-    
+
     ; == Sequential Q-Learning
     if learning-mode = "Sequential Q-Learning" [
       let action 0
@@ -923,7 +923,7 @@ to move-explorers
             set sqval-prev-patch-pycor pycor
 
             set sqval-prev-action (choice-action-max-sqval true sqval-prev-iteration)
-            
+
             set next-reward reward
             set next-sqval (get-sqval sqval-prev-action sqval-prev-iteration)
           ]
@@ -938,7 +938,7 @@ to move-explorers
           ; On se déplace + récupère l'action qu'on a fait, et qui est donc l'action avec la max-sqval (ou l'action choisie au hasard par epsilon-greedy)
           set action sq-choose-and-do-action-carefully sqval-prev-iteration
           set sqval-prev-action action
-          
+
           ; = Récupération des valeurs next(max(Q(s',a'))) et reward'
           ; Coeur du SQ-Learning: si on change de patch, on revient à la 1ere itération des valeurs sqval de cette case (la prochaine case en fait, donc ici c'est la prochaine itération qu'on calcule)
           ifelse sqval-prev-iteration < 0 or patch sqval-prev-patch-pxcor sqval-prev-patch-pycor != patch-here [
@@ -949,7 +949,7 @@ to move-explorers
             set new-iteration sqval-prev-iteration + 1
           ]
           if verbose [ show (word "action faite: " action " it: " sqval-prev-iteration) ]
-          
+
           ; Enfin, on récupère la max-sqval et reward de la prochaine case (maintenant case en cours)
           ask patch-here [
             set next-reward reward
@@ -977,7 +977,7 @@ to move-explorers
         ; ]
         ;]
         ;[
-        
+
         ; = Récupération des valeurs en cours pour max(Q(s,a))
         ; Une pierre 2 coups: On calcule la valeur nqval-max pour l'état en cours + on exécute l'action associée
         let tmpa choice-action-max-nqval true
@@ -989,7 +989,7 @@ to move-explorers
         set nqval-prev-A (item 2 tmp)
         set nqval-prev-Z (item 3 tmp)
         if verbose [ show word "action faite: " nqval-prev-action ]
-        
+
         ; = Récupération des valeurs next(max(Q(s',a'))) et reward'
         ; Ensuite on calcule la valeur next-max-nqval du nouvel état sur lequel on se trouve (donc on fait une MAJ à postériori: on se déplace puis on MAJ la valeur de l'état précédent après avoir exploré le prochain état)
         ask patch-here [
@@ -999,7 +999,7 @@ to move-explorers
           if not visited [ set reward-bounty-exploration-available? true ] ; favorisation de l'exploration: si la case était inconnue, l'agent a droit à une récompense supplémentaire!
           set next-visited-count visited-count
         ]
-        
+
         ; MAJ de la valeur NQval pour l'action précédente
         update-nqval next-reward next-max-nqval next-visited-count
       ]
@@ -1057,7 +1057,7 @@ to move-explorers
     ask patch-here [
       set visited true
     ]
-    
+
     ; On affiche la case actuelle si il y a un fogofwar
     if fogofwar [
       manage-fogofwar prev-patch
@@ -1093,7 +1093,7 @@ to-report check-dangers-and-treasure
       ]
     ]
   ]
-  
+
   if found-danger [set justfinished true]
 
   report found-danger
@@ -1116,7 +1116,7 @@ to reinf-visualisation
 
   ; Montre les scores des apprentissage par renforcement
   if reinf-visu [
-    
+
     ; TD-Learning: On affiche le score sur chaque patch ainsi qu'un dégradé de couleur: plus clair pour le max au plus foncé pour le min entre toutes les valeurs de tous les patchs
     if learning-mode = "TD-Learning" [
       let max-tdval max [tdval] of patches ; Récupère la valeur tdval max entre tous les patchs
@@ -1146,7 +1146,7 @@ to reinf-visualisation
         if best-action = parrowdown [ set best-action-text "Av" ]
         if best-action = parrowleft [ set best-action-text "A<" ]
         if best-action = parrowright [ set best-action-text "A>" ]
-        
+
         set plabel (word best-action-text " " (precision best-qval 1))
       ]
     ]
@@ -1168,7 +1168,7 @@ to reinf-visualisation
             if best-action = parrowdown [ set best-action-text "Av" ]
             if best-action = parrowleft [ set best-action-text "A<" ]
             if best-action = parrowright [ set best-action-text "A>" ]
-            
+
             set plabel (word best-action-text " " (precision best-qval 1))
           ]
           []
@@ -1239,7 +1239,7 @@ to update-qval [next-reward next-qval]
     [
       set qval-new (1 - alpha) * qval-prev + alpha * (next-reward + gamma * next-qval)
     ]
-    
+
     if qval-prev-action = pup [ set qval-up qval-new ]
     if qval-prev-action = pdown [ set qval-down qval-new ]
     if qval-prev-action = pleft [ set qval-left qval-new ]
@@ -1502,7 +1502,7 @@ to-report nq-make-example [action]
   let exploratory-interests []
   let g-scores []
   let safe-scores []
-  
+
   let monster-threat-neighbor 0
   let pits-threat-neighbor 0
   let unexplored-neighbor 0
@@ -1566,7 +1566,7 @@ to-report nq-make-example [action]
       ]
     ]
   ]
-  
+
   ifelse nq-surroundFeatures [
     ifelse use-global-score [
       report matrix:from-row-list (list (sentence (list current-qval ) g-scores ))
@@ -1592,7 +1592,7 @@ to-report nq-update-example [newX prevX]
   let prev-X-memo (sublist prev-X-list 0 (length prev-X-list - nbfeatures)) ; Exemples précédents mémorisés (on mémorise les nq-memo features précédentes pour que le réseau de neurones puisse avoir une certaine mémoire du passé)
   let new-X (matrix:get-row newX 0) ; Nouvel exemple qu'on va préposer devant les anciens exemples
   report matrix:from-row-list (list (sentence new-X prev-X-memo )) ; On doit stocker avant l'action l'exemple (état) en cours
-end  
+end
 
 to-report compute-exploratory-interest
   let v 1
@@ -1606,7 +1606,7 @@ end
 ; On limite la liste a revisionHistory, sauf si revisionHistory est a 0
 to-report nq-append-example [action megaX xnew]
   let X []
-  
+
   ; D'abord on prétraite xnew pour que ce soit toujours une matrice
   ; Scalaire -> matrice
   ifelse is-number? xnew [
@@ -1619,7 +1619,7 @@ to-report nq-append-example [action megaX xnew]
     ]
     ; Sinon c'est deja une matrice, on n'a rien à faire
   ]
-  
+
   ifelse (item action megaX) = nobody [ ; Si pas d'ancienne matrice (on initialize là avec la première valeur) alors on en crée une
     set X xnew ; Tout simplement on dit que xnew c'est X
   ]
@@ -1644,10 +1644,10 @@ to-report nq-append-example [action megaX xnew]
   ;  let excedent (M - replayHistory)
   ;  set X (matrix-slice X (word excedent ":end") ":") ; On enleve les plus anciennes entree
   ;]
-  
+
   ; Enfin on replace les matrices mises à jour dans les mega matrices
   set megaX (replace-item action megaX X)
-  
+
   report megaX
 end
 
@@ -1701,10 +1701,10 @@ to update-nqval [next-reward next-nqval next-visited-count] ; les deux arguments
     ; Calcul du coût actuel (avant propagation avant)
     let J (nnComputeCost 0 nqval-neurons_per_layer nnlambda M Theta nqval-prev-A Y Ypred)
     plot-learning-curve "learn" nqval-prev-action J
-    
+
     ; Propagation arrière (propagation de l'erreur et apprentissage)
     let Theta_grad (nnBackwardProp 0 nqval-neurons_per_layer nnlambda M Theta nqval-prev-A nqval-prev-Z Y )
-    
+
     ; Modification des paramètres en utilisant le gradient
     let Layers (length nqval-neurons_per_layer)
     let i 0
@@ -1713,7 +1713,7 @@ to update-nqval [next-reward next-nqval next-visited-count] ; les deux arguments
       set Theta (replace-item i Theta newval)
       set i (i + 1)
     ]
-    
+
     ; Enfin, on replace le nouveau Theta à sa place dans megaTheta (qui contient les Thetas pour toutes les actions)
     set nqval-megaTheta (replace-item nqval-prev-action nqval-megaTheta Theta)
   ]
@@ -1745,20 +1745,20 @@ to update-nqval [next-reward next-nqval next-visited-count] ; les deux arguments
           let X (item action nqval-megaX)
           let Y (item action nqval-megaY)
           let Theta (item action nqval-megaTheta)
-          
+
           if X != nobody and Y != nobody [ ; On apprend seulement si on a au moins un exemple pour cette action dans ce replay
             let tmp (nnLearn action 0 stoch Theta nqval-neurons_per_layer nnlambda X Y [] [] nnStep nqIterMax nqSeuilDiffGrad)
             set Theta (item 0 tmp)
             set nqval-megaTheta (replace-item action nqval-megaTheta Theta) ; On remplace le nouveau Theta appris dans la mega matrice Theta
           ]
-          
+
           set action (action + 1)
         ]
-        
+
         ; Enfin on vide les mega matrices d'exemples pour le prochain replay
         set nqval-megaX (n-values nbactions [nobody])
         set nqval-megaY (n-values nbactions [nobody])
-        
+
         ; Et on mémorise le nombre de ticks où on s'est arrété la dernière fois qu'on a fait un replay
         set replay-last-ticks ticks
 
@@ -1944,7 +1944,7 @@ to play-mode-go
     if fogofwar [
       manage-fogofwar prev-patch
     ]
-  
+
     ; Vérification de l'état du jeu (gagné/perdu ou rien et on peut continuer?)
     let curr-patch patch-here
     if check-dangers-and-treasure [
@@ -1974,7 +1974,7 @@ to play-mode-go
       ]
     ]
   ]
-  
+
   ; MAJ des dangers sur la case
   update-threats
   ; MAJ du score global
@@ -2177,7 +2177,7 @@ to design
         ; Apparence
         set shape "tile water"
         set color black
-        
+
         ; Initialisation des variables propres
         ask neighbors4 [
           ; Mise en place des sens sur les cases voisines
@@ -2208,7 +2208,7 @@ to do-plot-winloss-ratio
     let new-won (count-won - prev-won)
     let new-loss (count-eaten + count-fell - prev-loss)
     let full (new-won + new-loss)
-    
+
     set-current-plot "Win/Loss Ratio"
     set-current-plot-pen "win"
     plot new-won * 100 / full
@@ -2216,7 +2216,7 @@ to do-plot-winloss-ratio
     set-current-plot-pen "loss"
     plot new-loss * 100 / full
     set prev-loss (count-eaten + count-fell)
-    
+
     set prev-gen gen
   ]
 end
@@ -2282,7 +2282,7 @@ to-report sig_aux [x]
     set ret 1 / (1 + exp (min (list (- x) 709.7827128))) ; prefer using (exp x) rather than (e ^ x) because the latter can produce an error (number is too big) while exp will produce Infinity without error
     ; limit to a magic constant 709... to avoid Infinity. FIXME this is not a clean way to do it
   ]
-  
+
   report ret
 end
 
@@ -2326,7 +2326,7 @@ to-report nnDebugInitializeWeights [L_in L_out]
     set j (j + 1)
     set i 0
   ]
-  
+
   report W
 end
 
@@ -2338,7 +2338,7 @@ to-report nnRandInitializeWeights [L_in L_out]
   let N (1 + L_in) ; 1+L_in because the first row of W handles the "bias" term
   let M L_out
   let W matrix:make-constant M N 0
-  
+
   let epsilon_init 1 ; or 0.12, both are magic values anyway, so you can change that to anything you want
 
   let ind 1
@@ -2353,7 +2353,7 @@ to-report nnRandInitializeWeights [L_in L_out]
     set j (j + 1)
     set i 0
   ]
-  
+
   report W
 end
 
@@ -2371,14 +2371,14 @@ to-report crossval [X y learnPart]
 
   let indrandlearn sort (sublist indrand 0 numlearn)
   let indrandtest sort (sublist indrand numlearn M)
-  
+
 
   ; Split the dataset in two
   let Xlearn (matrix-slice X indrandlearn ":")
   let Ylearn (matrix-slice y indrandlearn ":")
   let Xtest (matrix-slice X indrandtest ":")
   let Ytest (matrix-slice y indrandtest ":")
-  
+
   report (list Xlearn Ylearn Xtest Ytest)
 end
 
@@ -2394,9 +2394,9 @@ to-report nnLearn [action fmode stochOrBatch
     let dimtest matrix:dimensions Xtest
     set Mtest item 0 dimtest
   ]
-  
+
   let Layers (length neurons_per_layer)
-  
+
   let orig_Xlearn []
   let orig_Ylearn []
   let orig_M M
@@ -2409,7 +2409,7 @@ to-report nnLearn [action fmode stochOrBatch
   let t 1
   let err []
   let errtest []
-  
+
   let converged false
   let temp []
   let lastind (orig_M - 1)
@@ -2436,7 +2436,7 @@ to-report nnLearn [action fmode stochOrBatch
     let Ypred (item 0 temp)
     let A (item 1 temp)
     let Z (item 2 temp)
-    
+
     let er (nnComputeCost fmode neurons_per_layer lambda M Theta A Ylearn Ypred)
     ;set err (lput er err) ; Works OK but commented out to save memory space since it's plotted anyway
     plot-learning-curve "learn" action er
@@ -2445,16 +2445,16 @@ to-report nnLearn [action fmode stochOrBatch
       let Ypredtest (item 0 temp)
       let Atest (item 1 temp)
       let Ztest (item 2 temp)
-      
+
       let ert (nnComputeCost fmode neurons_per_layer lambda Mtest Theta Atest Ytest Ypredtest)
       ;set errtest (lput ert errtest) ; Works OK but commented out to save memory space since it's plotted anyway
       plot-learning-curve "test" action ert
     ]
-    
+
     ; == Back propagating
     ; Computing gradient
     let Theta_grad (nnBackwardProp fmode neurons_per_layer lambda M Theta A Z Ylearn)
-    
+
     ; Comitting gradient to change our parameters Theta
     let Theta2 (n-values Layers [0])
     let i 0
@@ -2479,11 +2479,11 @@ to-report nnLearn [action fmode stochOrBatch
 
     ; Increment t (iteration counter)
     set t (t + 1)
-    
+
     ; 1st stop criterion: we reached the maximum number of iterations allowed or user want to stop
     if t >= nIterMax or stop-nqlearn [
       set converged true
-      
+
       ; Recompute the forward propagation and cost with the latest gradient... Below is just a copy-paste of what is above (FIXME)
       set er (nnComputeCost fmode neurons_per_layer lambda M Theta A Ylearn Ypred)
       ;set err (lput er err)
@@ -2493,13 +2493,13 @@ to-report nnLearn [action fmode stochOrBatch
         let Ypredtest (item 0 temp)
         let Atest (item 1 temp)
         let Ztest (item 2 temp)
-        
+
         let ert (nnComputeCost fmode neurons_per_layer lambda Mtest Theta Atest Ytest Ypredtest)
         ;set errtest (lput ert errtest)
         plot-learning-curve "test" action ert
       ]
     ]
-    
+
     ; Force refreshing of the plots
     display
   ]
@@ -2534,7 +2534,7 @@ to-report nnForwardProp [fmode neurons_per_layer Theta X]
     if L < (Layers - 1) [
       set A (replace-item L A (addBias (item L A))) ; adding bias unit (except for the last layer)
     ]
-    
+
     set L (L + 1)
   ]
 
@@ -2560,7 +2560,7 @@ to-report nnComputeCost [fmode neurons_per_layer lambda M Theta A Y Ypred]
     set J (matrix-sum (matrix-sum (matrix:times-element-wise ydiff ydiff) 2) 1) ; First we must sum over the features to compute some kind of euclidian distance, then we can sum over all examples errors (don't try to put a square root here, it degrades a lot the performances! This is a correct implementation after checking with nnCheckGradient)
     set J (1 / (2 * M) * J) ; scale cost relatively to the size of the dataset
   ]
-  
+
   let sum_thetas 0
   let L 0
   while [L < (Layers - 1)] [
@@ -2575,10 +2575,10 @@ end
 
 to-report nnBackwardProp [fmode neurons_per_layer lambda M Theta A Z Y]
   let Layers (length neurons_per_layer)
-  
+
   let delta (n-values Layers [0])
   let Ypredscores (item (Layers - 1) A)
-  
+
   if is-number? Y [ set Y matrix:from-row-list (list (list Y)) ] ; Convert to a matrix if it's only a number
 
   ; == Initializing first value for back propagation
@@ -2614,7 +2614,7 @@ to-report nnBackwardProp [fmode neurons_per_layer lambda M Theta A Z Y]
     let tmp matrix:plus tg (matrix:times-scalar t (lambda / M))
     let t1 (matrix:get-column (item L D) 0)
     set D (replace-item L D (matrix-prepend-column tmp t1))
-    
+
     set L (L - 1)
   ]
 
@@ -2641,7 +2641,7 @@ end
 
 to-report matrix-slice [X indx indy]
   let X2 matrix:copy X
-  
+
   let dim matrix:dimensions X2
   let M item 0 dim
   let N item 1 dim
@@ -2691,7 +2691,7 @@ to-report matrix-slice [X indx indy]
         ;set X2 matrix:submatrix X2 indx 0 (indx + 1) N ; submatrix is more consistent than get-row or get-column since it always returns a matrix, and not a list or a number
       ]
     ]
-    
+
     ; COLUMN VECTORIZED SLICING
     ; indx is a range of indexes (given as a string, format: "start:end")
     ifelse is-string? indy [
@@ -2747,7 +2747,7 @@ to-report matrix-slice [X indx indy]
     ; UNVECTORIZED SLICING
     ; if indx and/or indy is a list of indexes (not a range nor number), thus it can be a non-contiguous range of indexes (eg: 1, 3, 4), we have to do it by ourselves in a for loop
     ; We suppose that if indx is a list, then necessarily all rows from X were not touched and are intact in X2 (with same indexes), and thus we can extract from X2 with same indexes as in X. Same for indy and columns.
-    
+
     ; indx is a list of indexes
     if is-list? indx [
       let Xlist []
@@ -2875,7 +2875,7 @@ to-report matrix-sqrt [X]
 
   let dim matrix:dimensions X2
   let M item 0 dim
-  let N item 1 dim  
+  let N item 1 dim
 
   let i 0
   let j 0
@@ -2896,7 +2896,7 @@ end
 to-report matrix-sum [X columnsOrRows?] ; columnsOrRows? 2 = over columns
   if is-number? X [report X] ; if it's already a number, we've got nothing to do, just return it
   if is-list? X [report sum X] ; if it's a list we use the built-in function
-  
+
   let dim matrix:dimensions X
   let M item 0 dim
   let N item 1 dim
@@ -2934,7 +2934,7 @@ to-report matrix-sum [X columnsOrRows?] ; columnsOrRows? 2 = over columns
       set Xret (matrix:from-row-list  (list Xret))
     ]
   ]
-  
+
   report Xret
 end
 
@@ -2982,7 +2982,7 @@ to-report matrix-max [X columnsOrRows?] ; columnsOrRows? 2 = over columns
       set Xret (matrix:from-row-list  (list Xret))
     ]
   ]
-  
+
   report Xret
 end
 
@@ -3030,7 +3030,7 @@ to-report matrix-min [X columnsOrRows?] ; columnsOrRows? 2 = over columns
       set Xret (matrix:from-row-list  (list Xret))
     ]
   ]
-  
+
   report Xret
 end
 
@@ -3694,7 +3694,7 @@ INPUTBOX
 950
 135
 nnStep
-0.0050
+0.005
 1
 0
 Number
@@ -3748,7 +3748,7 @@ INPUTBOX
 1225
 225
 nqSeuilDiffGrad
-0.0010
+0.001
 1
 0
 Number
@@ -3990,7 +3990,7 @@ Alpha, gamma and epsilon are parameters to tweak the learning algorithms.
 - the switch "random-startpos" enables an harder variant of the game, where the agent is randomly spawned in the labyrinth, but the labyrinth is always fixed (so the agent does not know where it is, it has to safely explore a bit to recognize the landscape before knowing where it is and thus apply its learnt strategies).
 - the switch "harder-variable" enables the hardest variant of the Wumpus game, where the labyrinth is dynamically regenerated at each game.
 
-There are 
+There are
 
 ### Play Mode
 
@@ -4105,7 +4105,6 @@ But the name "Mixture Particle Filter" was only coined by another article propos
 
 Stephen Larroque and Hugo Gilbert for a Master project at University Pierre-And-Marie-Curie Paris 6.
 Opensource licensed under MIT.
-
 @#$#@#$#@
 default
 true
@@ -4494,7 +4493,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.4
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -4502,9 +4501,9 @@ NetLogo 5.0.4
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
