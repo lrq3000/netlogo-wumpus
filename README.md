@@ -7,7 +7,7 @@ To help himself, the adventurer only has a light torch (that does not light up a
 
 This game has two modes: simulation where the adventurer learns to defeat the labyrinth by itself, and a playing mode where you can guide the adventurer to the fabulous treasure!
 
-![wumpus](https://raw.githubusercontent.com/lrq3000/netlogo-wumpus/master/img/wumpus.jpg)
+![wumpus screenshot](https://raw.githubusercontent.com/lrq3000/netlogo-wumpus/master/img/wumpus.png)
 
 The full report can be found in the `report/` folder:
 
