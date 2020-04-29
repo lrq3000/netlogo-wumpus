@@ -7,7 +7,7 @@ To help himself, the adventurer only has a light torch (that does not light up a
 
 This game has two modes: simulation where the adventurer learns to defeat the labyrinth by itself, and a playing mode where you can guide the adventurer to the fabulous treasure!
 
-The simulation implements simple yet very effective AI strategies that wins >95% of the time.
+The simulation implements simple yet very effective AI strategies such as Chicken Search that wins >85% of the time.
 
 ![wumpus screenshot](https://raw.githubusercontent.com/lrq3000/netlogo-wumpus/master/img/wumpus.png)
 
